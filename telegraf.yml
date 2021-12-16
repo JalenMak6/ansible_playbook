@@ -1,0 +1,29 @@
+---
+- name: isntall and run telegraf on the desitnated host
+  hosts: monitoring_node 
+  become: true
+  tasks:
+    - name: Run a script to install telegraf
+      ansible.builtin.script:
+        cmd: /root/ubuntu-telegraf-install/install.sh
+
+    - name: Enable telegraf on the remote host
+      ansible.builtin.service:
+        name: telegraf
+        state: started
+
+    - name: Copy telegraf.conf to remote host
+      ansible.builtin.copy:
+        src: /etc/telegraf/telegraf.conf
+        dest: /etc/telegraf/telegraf.conf
+        owner: root
+        group: root
+        mode: '0644'
+        backup: yes
+
+    - name: Restart telegraf service
+      ansible.builtin.service:
+        name: telegraf
+        state: restarted
+
+
