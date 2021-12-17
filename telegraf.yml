@@ -26,4 +26,6 @@
         name: telegraf
         state: restarted
 
-
+    - name: Standardize the Timezone
+      ansible.builtin.timezone:
+        name: America/Vancouver
