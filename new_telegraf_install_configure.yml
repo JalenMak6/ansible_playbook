@@ -1,0 +1,56 @@
+---
+ - name: install and configure telegraf on nodes
+   hosts: test
+   gather_facts: yes
+   become: true
+   vars:
+     os: "{{ ansible_distribution }}"
+   tasks:
+     - name: get the telegraf key from repos.influxdata.com
+       command: wget -qO- https://repos.influxdata.com/influxdb.key
+       register: my_key
+
+     - debug:
+         var=my_key.stdout_lines
+
+     - name: put the my_key to indexdb.asc
+       copy:
+         content: "{{'\n'.join(my_key.stdout_lines) }}"
+         dest: /etc/apt/trusted.gpg.d/influxdb.asc
+
+
+     - name: use the key from the link and put into indluxdb.list
+       command: echo "deb https://repos.influxdata.com/{{ os.lower() }} {{ ansible_distribution_release }} stable"
+       register: my_link
+
+     - name: debug to see the message
+       debug: var=my_link.stdout_lines
+
+     - name: Add repo
+       copy:
+         content: "{{ ''.join(my_link.stdout_lines) }}"
+               #content: "deb https://repos.influxdata.com/ubuntu focal stable"
+         dest: /etc/apt/sources.list.d/influxdb.list
+
+
+     - name: upgrade dist
+       apt:
+         update_cache=yes  
+         upgrade=dist
+         force_apt_get=yes
+         
+     - name: install telegraf
+       apt:
+         name: telegraf 
+         state: latest
+
+     - name: copy the telegraf config fiel to nodes
+       copy:
+         src: /etc/telegraf/telegraf.conf
+         dest: /etc/telegraf/telegraf.conf
+
+     - name: reload telegraf
+       service:
+         name: telegraf
+         state: reloaded
+                              
