@@ -57,3 +57,17 @@
 
      - name: output version
        debug: var=docker_version.stdout
+       
+          - name: install docker-compose
+       uri:
+        url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+        method: GET
+        dest: /usr/local/bin/docker-compose
+
+     - name: Allow executable permission
+       file:
+         path: /usr/local/bin/docker-compose
+         mode: a+x
+         src: /usr/local/bin/docker-compose
+         dest: /usr/bin/docker-compose
+         state: link
