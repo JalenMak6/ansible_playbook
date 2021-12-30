@@ -1,0 +1,59 @@
+---
+ - name: Playbook for installing Docker on Ubuntu 20.04
+   hosts: docker_newbie
+   become: true
+   tasks:
+     - name: remove exisiting old docker packages
+       apt:
+         name: "{{ item }}"
+         state: absent
+       loop:
+         - docker
+         - docker-engine
+         - docker-io
+         - containerd
+         - runc
+
+     - name: update package
+       apt:
+         update_cache=yes
+         upgrade=dist
+
+     - name: install required packages for install docker
+       apt:
+         name: "{{ item }}"
+         state: present
+       loop:
+         - ca-certificates
+         - curl
+         - gnupg
+         - lsb-release
+
+     - name: Add Docker’s official GPG key
+       apt_key:
+         url: https://download.docker.com/linux/ubuntu/gpg
+         state: present
+
+     - name: Setup docker stable repository
+       apt_repository:
+         repo: deb https://download.docker.com/linux/{{ansible_distribution.lower() }} {{ ansible_distribution_release }} stable
+
+     - name: update packages
+       apt:
+         update_cache=yes
+     
+     - name: Install docker engine
+       apt:
+         name: "{{ item }}"
+         state: present
+       loop:
+         - docker-ce
+         - docker-ce-cli
+         - containerd.io
+
+     - name: Check the node's Docker version
+       command: docker --version
+       register: docker_version
+
+     - name: output version
+       debug: var=docker_version.stdout
